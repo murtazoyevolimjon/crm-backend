@@ -1,12 +1,10 @@
 import { Module } from '@nestjs/common';
-import { MailerModule as NestMailerModule } from '@nestjs-modules/mailer';
-import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
-import { MailerService } from './mailer.service';
+import { MailerModule as NestMilerModule } from '@nestjs-modules/mailer';
 import { join } from 'path';
 
 @Module({
   imports: [
-    NestMailerModule.forRoot({
+    NestMilerModule.forRoot({
       transport: {
         service: 'gmail',
         auth: {
@@ -15,18 +13,15 @@ import { join } from 'path';
         },
       },
       defaults: {
-        from: `"Murtazoyev Olimjon" <${process.env.GMAIL_USER}>`,
+        from: `"Soatmurotov Abrorbek" <${process.env.GMAIL_USER}>`,
       },
       template: {
-        dir: join(process.cwd(), 'template'),
-        adapter: new HandlebarsAdapter(),
+        dir: join(__dirname, '../../..', 'template'),
         options: {
           strict: true,
         },
       },
     }),
   ],
-  providers: [MailerService],
-  exports: [MailerService], // ← bu qo'shildi
 })
 export class MailerModule {}
