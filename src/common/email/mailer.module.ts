@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { MailerModule as NestMilerModule } from '@nestjs-modules/mailer';
-import { join } from 'path';
 
 @Module({
   imports: [
@@ -13,13 +12,7 @@ import { join } from 'path';
         },
       },
       defaults: {
-        from: `"Soatmurotov Abrorbek" <${process.env.GMAIL_USER}>`,
-      },
-      template: {
-        dir: join(__dirname, '../../..', 'template'),
-        options: {
-          strict: true,
-        },
+        from: `Murtazoyev Olimjon" <${process.env.GMAIL_USER}>`,
       },
     }),
   ],
