@@ -28,7 +28,7 @@ jobs:
 
             if [ ! -d "crm-backend/.git" ]; then
               echo "Cloning repository!"
-              git clone https://github.com/murtazoyevolimjon/crm-backend
+              git clone https://github.com/murtazoyevolimjon/crm-backend.git
             else
               echo "Pulling latest changes!"
               cd crm-backend
