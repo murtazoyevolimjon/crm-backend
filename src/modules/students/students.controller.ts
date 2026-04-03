@@ -8,13 +8,18 @@ import { AuthGuard } from 'src/common/guard/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guard/roles.guard';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { Roles } from 'src/common/guard/decorator.roles';
+import { AuthService } from 'src/modules/auth/auth.service';
+import { LoginDto } from './dto/login.dto';
 
 @Controller('students')
 @ApiBearerAuth()
 export class StudentsController {
-  constructor(private readonly studentsService: StudentsService) {}
+  constructor(
+    private readonly studentsService: StudentsService,
+    private readonly authService: AuthService,
+  ) { }
 
-  @ApiOperation({summary: `${Role.STUDENT}`})
+  @ApiOperation({ summary: `${Role.STUDENT}` })
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.STUDENT)
   @Get("my/groups")
@@ -22,7 +27,7 @@ export class StudentsController {
     return this.studentsService.getMyGroups(req["user"])
   }
 
-  @ApiOperation({summary: `${Role.STUDENT}`})
+  @ApiOperation({ summary: `${Role.STUDENT}` })
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.STUDENT)
   @Get("my/group/lessonVideo/:groupId")
@@ -33,7 +38,7 @@ export class StudentsController {
     return this.studentsService.getMyGroupLessonVideo(groupId, req["user"])
   }
 
-  @ApiOperation({summary: `${Role.STUDENT}`})
+  @ApiOperation({ summary: `${Role.STUDENT}` })
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.STUDENT)
   @Get("my/lessons/:groupId")
@@ -44,7 +49,7 @@ export class StudentsController {
     return this.studentsService.getMyLessons(groupId, req["user"])
   }
 
-  @ApiOperation({summary: `${Role.STUDENT}`})
+  @ApiOperation({ summary: `${Role.STUDENT}` })
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.STUDENT)
   @Get("my/group/homework/:groupId")
@@ -101,5 +106,10 @@ export class StudentsController {
   @Delete(':id')
   deleteStudent(@Param('id', ParseIntPipe) id: number) {
     return this.studentsService.deleteStudent(id);
+  }
+
+  @Post('login')
+  async login(@Body() loginDto: LoginDto) {
+    return this.authService.login(loginDto);
   }
 }

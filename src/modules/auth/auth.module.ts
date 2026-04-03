@@ -19,5 +19,6 @@ import { MailerModule } from 'src/common/email/mailer.module';
   ],
   controllers: [AuthController],
   providers: [AuthService],
+  exports: [AuthService],
 })
-export class AuthModule {}
+export class AuthModule { }

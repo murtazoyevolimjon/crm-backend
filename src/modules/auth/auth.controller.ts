@@ -6,7 +6,7 @@ import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 @Controller('auth')
 @ApiBearerAuth()
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @ApiOperation({ summary: 'SuperAdmin login' })
   @Post('login/admin')
@@ -17,12 +17,12 @@ export class AuthController {
   @ApiOperation({ summary: 'Teacher login' })
   @Post('login/teacher')
   loginTeacher(@Body() payload: LoginDto) {
-    return this.authService.loginTeacher(payload);
+    return this.authService.login(payload);
   }
 
   @ApiOperation({ summary: 'Student login' })
   @Post('login/student')
   loginStudent(@Body() payload: LoginDto) {
-    return this.authService.loginStudent(payload);
+    return this.authService.login(payload);
   }
 }
