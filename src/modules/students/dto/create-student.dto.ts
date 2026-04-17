@@ -1,26 +1,30 @@
-import { IsString, IsEmail, IsOptional, IsEnum } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsDateString, IsEmail, IsNotEmpty, IsOptional, IsString, IsUrl, MaxLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { Role } from '@prisma/client';
 
 export class CreateStudentDto {
-  @ApiProperty()
+  @ApiProperty({ example: 'Ali Valiyev' })
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsString()
-  fullName: string
+  @IsNotEmpty()
+  @MaxLength(120)
+  fullName!: string;
 
-  @ApiProperty()
+  @ApiProperty({ example: 'student@mail.com' })
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
   @IsEmail()
-  email: string
+  email!: string;
 
-  @ApiProperty()
+  @ApiProperty({ example: 'qwerty123' })
   @IsString()
-  password: string
+  password!: string;
 
-  @ApiProperty()
-  @IsString()
-  birth_date: string
+  @ApiProperty({ example: '2007-01-25' })
+  @IsDateString()
+  birth_date!: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
-  @IsString()
+  @IsUrl({ require_protocol: true })
   photo?: string;
 }

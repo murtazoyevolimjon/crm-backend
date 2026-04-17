@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CloudinaryService } from 'src/common/cloudinary/cloudinary.service';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { CreateHomeworkResponseDto } from './dto/create-homework-response.dto';
@@ -8,27 +8,45 @@ export class HomeworkResponseService {
   constructor(
     private prisma: PrismaService,
     private cloudinary: CloudinaryService,
-  ) {}
+  ) { }
+
+  private async getHomeworkOrThrow(homeworkId: number) {
+    const homework = await this.prisma.homework.findUnique({
+      where: { id: homeworkId },
+    });
+
+    if (!homework) {
+      throw new NotFoundException('Homework not found');
+    }
+
+    return homework;
+  }
+
+  private async uploadIfProvided(file?: Express.Multer.File) {
+    if (!file) return undefined;
+    return this.cloudinary.uploadFile(file, 'homework/responses');
+  }
 
   async createHomeworkResponse(
     payload: CreateHomeworkResponseDto,
     currentUser: { id: number },
     file?: Express.Multer.File,
   ) {
-    const existHomework = await this.prisma.homework.findUnique({
+    await this.getHomeworkOrThrow(payload.homeworkId);
+
+    const existingResponse = await this.prisma.homeworkResponse.findFirst({
       where: {
-        id: payload.homeworkId,
+        homeworkId: payload.homeworkId,
+        studentId: currentUser.id,
       },
+      select: { id: true },
     });
 
-    if (!existHomework) {
-      throw new NotFoundException('Homework not found');
+    if (existingResponse) {
+      throw new ConflictException('Uyga vazifa allaqachon topshirilgan');
     }
 
-    let fileUrl: string | undefined;
-    if (file) {
-      fileUrl = await this.cloudinary.uploadFile(file, 'homework/responses');
-    }
+    const fileUrl = await this.uploadIfProvided(file);
 
     await this.prisma.homeworkResponse.create({
       data: {
@@ -50,15 +68,7 @@ export class HomeworkResponseService {
     currentUser: { id: number },
     file?: Express.Multer.File,
   ) {
-    const existHomework = await this.prisma.homework.findUnique({
-      where: {
-        id: payload.homeworkId,
-      },
-    });
-
-    if (!existHomework) {
-      throw new NotFoundException('Homework not found');
-    }
+    await this.getHomeworkOrThrow(payload.homeworkId);
 
     const existHomeworkResponse = await this.prisma.homeworkResponse.findFirst({
       where: {
@@ -74,10 +84,7 @@ export class HomeworkResponseService {
       throw new NotFoundException('Homework response not found');
     }
 
-    let fileUrl: string | undefined;
-    if (file) {
-      fileUrl = await this.cloudinary.uploadFile(file, 'homework/responses');
-    }
+    const fileUrl = await this.uploadIfProvided(file);
 
     await this.prisma.homeworkResponse.update({
       where: {

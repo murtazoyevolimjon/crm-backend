@@ -53,7 +53,7 @@ export class CloudinaryService {
 
         stream.end(file.buffer);
       });
-    } catch (error) {
+    } catch (error: any) {
       throw new BadRequestException(`File upload error: ${error.message}`);
     }
   }
@@ -67,13 +67,36 @@ export class CloudinaryService {
       throw new BadRequestException('Only video files are allowed');
     }
 
-    return this.uploadFile(file, 'lessons/videos');
+    try {
+      return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            folder: 'lesson-videos',
+            resource_type: 'video',
+            public_id: `${Date.now()}-${file.originalname.split('.')[0]}`,
+          },
+          (error, result: any) => {
+            if (error) {
+              reject(new BadRequestException(`Video upload failed: ${error.message}`));
+            } else if (result) {
+              resolve(result.secure_url);
+            } else {
+              reject(new BadRequestException('Video upload failed: No result returned'));
+            }
+          },
+        );
+
+        stream.end(file.buffer);
+      });
+    } catch (error: any) {
+      throw new BadRequestException(`Video upload error: ${error.message}`);
+    }
   }
 
   async deleteFile(publicId: string): Promise<void> {
     try {
       await cloudinary.uploader.destroy(publicId);
-    } catch (error) {
+    } catch (error: any) {
       throw new BadRequestException(`Delete failed: ${error.message}`);
     }
   }
@@ -81,7 +104,7 @@ export class CloudinaryService {
   async deleteVideo(publicId: string): Promise<void> {
     try {
       await cloudinary.uploader.destroy(publicId, { resource_type: 'video' });
-    } catch (error) {
+    } catch (error: any) {
       throw new BadRequestException(`Video delete failed: ${error.message}`);
     }
   }

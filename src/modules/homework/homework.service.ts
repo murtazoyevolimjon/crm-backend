@@ -11,7 +11,7 @@ import { UpdateHomeworkDto } from './dto/update-homework.dto';
 
 @Injectable()
 export class HomeworkService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async getHomeworkById(
     homeworkId: number,
@@ -22,17 +22,26 @@ export class HomeworkService {
       where: {
         id: homeworkId,
       },
+      select: {
+        id: true,
+        groupId: true,
+        teacherId: true,
+        userId: true,
+      },
     });
 
     if (!existHomework) {
       throw new NotFoundException('Homework not found');
     }
 
-    if (
-      currentUser.role === Role.TEACHER &&
-      existHomework.teacherId !== currentUser.id
-    ) {
-      throw new ForbiddenException('Bu sening homeworking emas');
+    if (currentUser.role === Role.TEACHER) {
+      const group = await this.prisma.group.findUnique({
+        where: { id: existHomework.groupId },
+        select: { teacherId: true },
+      });
+      if (existHomework.teacherId !== currentUser.id && group?.teacherId !== currentUser.id) {
+        throw new ForbiddenException('Bu sening homeworking emas');
+      }
     }
 
     if (
@@ -43,11 +52,15 @@ export class HomeworkService {
     }
 
     if (query.status === HomeworkStatus.PENDING) {
-      const homeworkResponse = await this.prisma.homeworkResponse.findMany({
+      const homeworkResponses = await this.prisma.homeworkResponse.findMany({
         where: {
           homeworkId,
         },
         select: {
+          id: true,
+          title: true,
+          file: true,
+          created_at: true,
           student: {
             select: {
               id: true,
@@ -57,9 +70,24 @@ export class HomeworkService {
         },
       });
 
+      const existingResults = await this.prisma.homeworkResult.findMany({
+        where: { homeworkId },
+        select: { studentId: true },
+      });
+      const gradedStudentIds = new Set(existingResults.map((r) => r.studentId));
+
+      const pendingResponses = homeworkResponses.filter(
+        (response) => !gradedStudentIds.has(response.student.id),
+      );
+
       return {
         success: true,
-        data: homeworkResponse,
+        data: pendingResponses.map((response) => ({
+          student: response.student,
+          comment: response.title,
+          file: response.file,
+          submittedAt: response.created_at,
+        })),
       };
     }
 
@@ -107,6 +135,7 @@ export class HomeworkService {
           status: HomeworkStatus.REJECTED,
         },
         select: {
+          id: true,
           student: {
             select: {
               id: true,
@@ -115,12 +144,43 @@ export class HomeworkService {
           },
           score: true,
           title: true,
+          created_at: true,
+          updated_at: true,
         },
       });
 
+      const responseMap = await this.prisma.homeworkResponse.findMany({
+        where: {
+          homeworkId,
+          studentId: { in: rejectedResults.map((r) => r.student.id) },
+        },
+        select: {
+          studentId: true,
+          title: true,
+          file: true,
+          created_at: true,
+        },
+      });
+
+      const responseByStudent = new Map(
+        responseMap.map((response) => [response.studentId, response]),
+      );
+
       return {
         success: true,
-        data: rejectedResults,
+        data: rejectedResults.map((result) => {
+          const response = responseByStudent.get(result.student.id);
+          return {
+            resultId: result.id,
+            student: result.student,
+            score: result.score,
+            teacherComment: result.title,
+            reviewedAt: result.updated_at,
+            submittedAt: response?.created_at || null,
+            comment: response?.title || null,
+            file: response?.file || null,
+          };
+        }),
       };
     }
 
@@ -131,6 +191,7 @@ export class HomeworkService {
           status: HomeworkStatus.APPROVED,
         },
         select: {
+          id: true,
           student: {
             select: {
               id: true,
@@ -139,11 +200,43 @@ export class HomeworkService {
           },
           score: true,
           title: true,
+          created_at: true,
+          updated_at: true,
         },
       });
+
+      const responseMap = await this.prisma.homeworkResponse.findMany({
+        where: {
+          homeworkId,
+          studentId: { in: approvedResults.map((r) => r.student.id) },
+        },
+        select: {
+          studentId: true,
+          title: true,
+          file: true,
+          created_at: true,
+        },
+      });
+
+      const responseByStudent = new Map(
+        responseMap.map((response) => [response.studentId, response]),
+      );
+
       return {
         success: true,
-        data: approvedResults,
+        data: approvedResults.map((result) => {
+          const response = responseByStudent.get(result.student.id);
+          return {
+            resultId: result.id,
+            student: result.student,
+            score: result.score,
+            teacherComment: result.title,
+            reviewedAt: result.updated_at,
+            submittedAt: response?.created_at || null,
+            comment: response?.title || null,
+            file: response?.file || null,
+          };
+        }),
       };
     }
 
@@ -181,6 +274,9 @@ export class HomeworkService {
       select: {
         id: true,
         title: true,
+        lessonId: true,
+        created_at: true,
+        durationTime: true,
       },
     });
 

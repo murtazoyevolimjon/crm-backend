@@ -139,14 +139,30 @@ export class GroupsService {
         const existGroup = await this.prisma.group.findUnique({ where: { id } });
         if (!existGroup) throw new NotFoundException("Group not found");
 
-        const { endDate, studentIds, ...groupData } = payload as any;
+        const { endDate, studentIds, teacherId, ...groupData } = payload as any;
+
+        const updateData: any = {
+            ...groupData,
+            ...(groupData.startDate && { startDate: new Date(groupData.startDate) }),
+        };
+
+        if (teacherId !== undefined && teacherId !== null && teacherId !== '') {
+            const teacherIdNumber = Number(teacherId);
+            if (Number.isNaN(teacherIdNumber)) {
+                throw new BadRequestException('Teacher id noto\'g\'ri');
+            }
+
+            const existTeacher = await this.prisma.teacher.findFirst({
+                where: { id: teacherIdNumber, status: Status.ACTIVE }
+            });
+            if (!existTeacher) throw new NotFoundException('Teacher not found with this id');
+
+            updateData.teacherId = teacherIdNumber;
+        }
 
         await this.prisma.group.update({
             where: { id },
-            data: {
-                ...groupData,
-                ...(groupData.startDate && { startDate: new Date(groupData.startDate) }),
-            }
+            data: updateData,
         });
 
         return { success: true, message: "Group updated" };

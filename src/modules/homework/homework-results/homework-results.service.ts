@@ -9,7 +9,7 @@ import { HomeworkStatus, Role } from '@prisma/client';
 
 @Injectable()
 export class HomeworkResultsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async createHomeworkResult(
     payload: CreateHomeworkResultsDto,
@@ -19,17 +19,25 @@ export class HomeworkResultsService {
       where: {
         id: payload.homeworkId,
       },
+      select: {
+        id: true,
+        groupId: true,
+        teacherId: true,
+      },
     });
 
     if (!existHomework) {
       throw new NotFoundException('Homework not found');
     }
 
-    if (
-      currentUser.role === Role.TEACHER &&
-      existHomework.teacherId !== currentUser.id
-    ) {
-      throw new ForbiddenException('Bu sening homeworking emas');
+    if (currentUser.role === Role.TEACHER) {
+      const group = await this.prisma.group.findUnique({
+        where: { id: existHomework.groupId },
+        select: { teacherId: true },
+      });
+      if (existHomework.teacherId !== currentUser.id && group?.teacherId !== currentUser.id) {
+        throw new ForbiddenException('Bu sening homeworking emas');
+      }
     }
 
     await this.prisma.homeworkResult.create({
@@ -61,17 +69,25 @@ export class HomeworkResultsService {
       where: {
         id: homeworkId,
       },
+      select: {
+        id: true,
+        groupId: true,
+        teacherId: true,
+      },
     });
 
     if (!existHomework) {
       throw new NotFoundException('Homework not found');
     }
 
-    if (
-      currentUser.role === Role.TEACHER &&
-      existHomework.teacherId !== currentUser.id
-    ) {
-      throw new ForbiddenException('Bu sening homeworking emas');
+    if (currentUser.role === Role.TEACHER) {
+      const group = await this.prisma.group.findUnique({
+        where: { id: existHomework.groupId },
+        select: { teacherId: true },
+      });
+      if (existHomework.teacherId !== currentUser.id && group?.teacherId !== currentUser.id) {
+        throw new ForbiddenException('Bu sening homeworking emas');
+      }
     }
 
     const homeworkResults = await this.prisma.homeworkResult.findMany({
@@ -116,17 +132,25 @@ export class HomeworkResultsService {
       where: {
         id: payload.homeworkId,
       },
+      select: {
+        id: true,
+        groupId: true,
+        teacherId: true,
+      },
     });
 
     if (!existHomework) {
       throw new NotFoundException('Homework not found');
     }
 
-    if (
-      currentUser.role === Role.TEACHER &&
-      existHomework.teacherId !== currentUser.id
-    ) {
-      throw new ForbiddenException('Bu sening homeworking emas');
+    if (currentUser.role === Role.TEACHER) {
+      const group = await this.prisma.group.findUnique({
+        where: { id: existHomework.groupId },
+        select: { teacherId: true },
+      });
+      if (existHomework.teacherId !== currentUser.id && group?.teacherId !== currentUser.id) {
+        throw new ForbiddenException('Bu sening homeworking emas');
+      }
     }
 
     await this.prisma.homeworkResult.update({

@@ -4,9 +4,9 @@ import { IsNumber, IsString } from "class-validator"
 export class CreateLessonDto {
     @ApiProperty({ example: 1 })
     @IsNumber()
-    groupId: number
+    groupId!: number
 
     @ApiProperty({ example: "string" })
     @IsString()
-    title: string
+    title!: string
 }

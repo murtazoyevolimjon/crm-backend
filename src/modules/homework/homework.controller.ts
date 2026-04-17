@@ -37,7 +37,7 @@ export class HomeworkController {
   constructor(
     private readonly homeworkService: HomeworkService,
     private readonly cloudinaryService: CloudinaryService,
-  ) {}
+  ) { }
 
   @ApiOperation({
     summary: `${Role.ADMIN}, ${Role.SUPERADMIN}, ${Role.TEACHER}`,
@@ -46,7 +46,7 @@ export class HomeworkController {
   @Roles(Role.ADMIN, Role.SUPERADMIN, Role.TEACHER)
   @Get('group/:groupId')
   getAllHomeworkByGroup(
-    @Param('groupId') groupId: number,
+    @Param('groupId', ParseIntPipe) groupId: number,
     @Req() req: Request,
   ) {
     return this.homeworkService.getAllHomeworkByGroup(groupId, req['user']);

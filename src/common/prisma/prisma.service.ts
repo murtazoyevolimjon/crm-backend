@@ -1,33 +1,43 @@
-import * as dotenv from 'dotenv';
-dotenv.config(); 
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { ConfigService } from '@nestjs/config'; 
+import { ConfigService } from '@nestjs/config';
 import { Pool } from 'pg';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
-  private pool: Pool;
+  private static pool: Pool | null = null;
 
-  constructor(private configService: ConfigService) {
+  constructor(configService: ConfigService) {
     const connectionString = configService.get<string>('DATABASE_URL');
+    if (!connectionString) {
+      throw new Error('DATABASE_URL topilmadi');
+    }
 
-    const pool = new Pool({ connectionString });
-    const adapter = new PrismaPg(pool);
+    if (!PrismaService.pool) {
+      PrismaService.pool = new Pool({
+        connectionString,
+        max: 20,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 5000,
+      });
+    }
+
+    const adapter = new PrismaPg(PrismaService.pool);
 
     super({ adapter });
-    this.pool = pool;
   }
 
   async onModuleInit() {
     await this.$connect();
-    console.log("prisma connect");
+    console.log('Prisma connected');
   }
 
   async onModuleDestroy() {
-    await this.$disconnect()
-    console.log("Prisma connnect error")
-    await this.pool.end();
+    await this.$disconnect();
+    if (PrismaService.pool) {
+      await PrismaService.pool.end();
+      PrismaService.pool = null;
+    }
   }
 }

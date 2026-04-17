@@ -3,20 +3,20 @@ import { IsString, IsNotEmpty, IsNumber } from 'class-validator';
 import { Type } from 'class-transformer'
 
 export class CreateHomeworkDto {
-  @ApiProperty({ example: "stringh"})
+  @ApiProperty({ example: "stringh" })
   @IsString()
   @IsNotEmpty()
-  title: string
+  title!: string;
 
   @ApiProperty({ example: 1 })
   @Type(() => Number)
   @IsNumber()
   @IsNotEmpty()
-  groupId: number
+  groupId!: number;
 
   @ApiProperty({ example: 1 })
   @Type(() => Number)
   @IsNumber()
   @IsNotEmpty()
-  lessonId: number
+  lessonId!: number;
 }

@@ -6,11 +6,11 @@ export class CreateLessonVideosDto {
   @ApiProperty({ example: 1 })
   @IsNumber()
   @Type(() => Number)
-  groupId: number
+  groupId!: number;
 
   @ApiProperty({ example: 1 })
   @IsNumber()
   @IsNotEmpty()
   @Type(() => Number)
-  lessonId: number
+  lessonId!: number;
 }

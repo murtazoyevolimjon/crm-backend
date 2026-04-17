@@ -1,13 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsEmail } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsString, IsEmail, IsNotEmpty } from 'class-validator';
 
 export class LoginDto {
-  @ApiProperty({ example: "murtazoyevolimjon54@gmail.com"})
-  @ApiProperty()
+  @ApiProperty({ example: "murtazoyevolimjon54@gmail.com" })
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
   @IsEmail()
-  email: string
+  @IsNotEmpty()
+  email!: string;
 
-  @ApiProperty({ example: "qwerty123"})
+  @ApiProperty({ example: "qwerty123" })
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsString()
-  password: string
+  @IsNotEmpty()
+  password!: string;
 }

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation } from '@nestjs/swagger';
@@ -13,7 +13,7 @@ import { UpdateTeachersDto } from './dto/update-teacher.dto';
 @Controller('teachers')
 @ApiBearerAuth()
 export class TeachersController {
-  constructor(private readonly teachersService: TeachersService) {}
+  constructor(private readonly teachersService: TeachersService) { }
 
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -50,6 +50,30 @@ export class TeachersController {
   }
 
   @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.TEACHER)
+  @ApiOperation({ summary: `${Role.TEACHER}` })
+  @Get('my/groups')
+  getMyGroups(@Req() req: Request) {
+    return this.teachersService.getMyGroups(req['user']);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.TEACHER)
+  @ApiOperation({ summary: `${Role.TEACHER}` })
+  @Get('me')
+  getMyProfile(@Req() req: Request) {
+    return this.teachersService.getMyProfile(req['user']);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.TEACHER)
+  @ApiOperation({ summary: `${Role.TEACHER}` })
+  @Post('me/reset-password')
+  resetMyPassword(@Req() req: Request) {
+    return this.teachersService.resetTeacherPassword(req['user'].id);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.SUPERADMIN, Role.ADMINSTRATOR, Role.MANAGEMENT)
   @ApiOperation({ summary: `${Role.SUPERADMIN}, ${Role.ADMIN}, ${Role.ADMINSTRATOR}, ${Role.MANAGEMENT}` })
   @Get(':id')
@@ -60,9 +84,28 @@ export class TeachersController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.SUPERADMIN, Role.ADMINSTRATOR, Role.MANAGEMENT)
   @ApiOperation({ summary: `${Role.SUPERADMIN}, ${Role.ADMIN}, ${Role.ADMINSTRATOR}, ${Role.MANAGEMENT}` })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        fullName: { type: 'string' },
+        email: { type: 'string' },
+        password: { type: 'string' },
+        position: { type: 'string' },
+        experience: { type: 'number', example: 4 },
+        photo: { type: 'string', format: 'binary', nullable: true },
+      },
+    },
+  })
+  @UseInterceptors(FileInterceptor('photo', { storage: memoryStorage() }))
   @Put(':id') // ✅ :id qo'shildi — oldin yo'q edi!
-  updateTeacher(@Param('id') id: string, @Body() payload: UpdateTeachersDto) {
-    return this.teachersService.updateTeacher(+id, payload);
+  updateTeacher(
+    @Param('id') id: string,
+    @Body() payload: UpdateTeachersDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    return this.teachersService.updateTeacher(+id, payload, file);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
@@ -71,5 +114,13 @@ export class TeachersController {
   @Delete(':id')
   async deleteTeacher(@Param('id', ParseIntPipe) id: number) {
     return this.teachersService.deleteTeacher(id);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.SUPERADMIN)
+  @ApiOperation({ summary: `${Role.SUPERADMIN}, ${Role.ADMIN} - Reset teacher password` })
+  @Post(':id/reset-password')
+  resetTeacherPassword(@Param('id', ParseIntPipe) id: number) {
+    return this.teachersService.resetTeacherPassword(id);
   }
 }

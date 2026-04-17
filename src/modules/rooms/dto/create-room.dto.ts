@@ -6,10 +6,9 @@ import { ApiProperty } from '@nestjs/swagger';
 export class CreateRoomDto {
     @ApiProperty()
     @IsString()
-    name: string;
+    name!: string;
 
     @ApiProperty()
     @IsNumber()
-    capacity:number
-    
+    capacity!: number;
 }

@@ -10,19 +10,19 @@ export class AuthController {
 
   @ApiOperation({ summary: 'SuperAdmin login' })
   @Post('login/admin')
-  login(@Body() payload: LoginDto) {
-    return this.authService.login(payload);
+  loginAdmin(@Body() payload: LoginDto) {
+    return this.authService.loginAdmin(payload);
   }
 
   @ApiOperation({ summary: 'Teacher login' })
   @Post('login/teacher')
   loginTeacher(@Body() payload: LoginDto) {
-    return this.authService.login(payload);
+    return this.authService.loginTeacher(payload);
   }
 
   @ApiOperation({ summary: 'Student login' })
   @Post('login/student')
   loginStudent(@Body() payload: LoginDto) {
-    return this.authService.login(payload);
+    return this.authService.loginStudent(payload);
   }
 }

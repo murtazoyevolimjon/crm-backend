@@ -5,32 +5,32 @@ import { IsDateString, IsEmail, IsEnum, IsOptional, IsString } from 'class-valid
 export class CreateUserDto {
   @ApiProperty({ example: 'string' })
   @IsString()
-  fullName: string
+  fullName!: string;
 
   @ApiProperty({ example: 'string' })
   @IsString()
   @IsEmail()
-  email: string
+  email!: string;
 
   @ApiProperty({ example: 'string' })
   @IsString()
-  password: string;
+  password!: string;
 
   @ApiProperty({ example: 'string' })
   @IsString()
-  position: string;
+  position!: string;
 
   @ApiProperty({ example: 'string' })
   @IsDateString()
-  hire_date: string;
+  hire_date!: string;
 
   @ApiProperty({ example: Role.STUDENT })
   @IsString()
   @IsEnum(Role)
-  role: Role
+  role!: Role;
 
   @ApiProperty({ example: 'string' })
   @IsOptional()
   @IsString()
-  address?: string
+  address?: string;
 }

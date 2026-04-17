@@ -10,7 +10,7 @@ import { CreateGroupDto } from './dto/create-group.dto';
 @Controller('groups')
 @ApiBearerAuth()
 export class GroupsController {
-  constructor(private readonly groupService: GroupsService) {}
+  constructor(private readonly groupService: GroupsService) { }
 
   @ApiOperation({ summary: `${Role.SUPERADMIN}, ${Role.ADMIN}, ${Role.TEACHER}` })
   @UseGuards(AuthGuard, RolesGuard)
@@ -31,6 +31,13 @@ export class GroupsController {
     @Req() req: Request,
   ) {
     return this.groupService.getGroupLessons(groupId, req['user']);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.SUPERADMIN)
+  @Get()
+  listGroups() {
+    return this.groupService.getAllGroup();
   }
 
   @UseGuards(AuthGuard, RolesGuard)
