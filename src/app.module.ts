@@ -14,6 +14,8 @@ import { LessonsModule } from './modules/lessons/lessons.module';
 import { GroupsModule } from './modules/groups/groups.module';
 import { HomeworkModule } from './modules/homework/homework.module';
 import { LessonVideosModule } from './modules/lesson-videos/lesson-videos.module';
+import { PaymentsModule } from './modules/payments/payments.module';
+import { SmsModule } from './common/sms/sms.module';
 
 @Module({
   imports: [
@@ -34,8 +36,10 @@ import { LessonVideosModule } from './modules/lesson-videos/lesson-videos.module
     AttendanceModule,
     HomeworkModule,
     LessonVideosModule,
+    SmsModule,
+    PaymentsModule,
   ],
   controllers: [],
   providers: [UserSeeder],
 })
-export class AppModule {}
+export class AppModule { }
